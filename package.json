@@ -1,0 +1,27 @@
+{
+  "name": "nudge",
+  "description": "A simple bot that reminds you to get back to something in slack.",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:pauldariye/remind-me.git",
+  "author": "Paul Dariye <paul.dariye@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "micro",
+    "dev": "bin/start-dev.sh",
+    "ngrok": "node bin/start-ngrok.js"
+  },
+  "devDependencies": {
+    "concurrently": "^3.6.0",
+    "dotenv-safe": "^6.0.0",
+    "micro-dev": "^3.0.0",
+    "ngrok": "^3.0.1"
+  },
+  "dependencies": {
+    "@slack/client": "^4.3.1",
+    "joi": "^13.4.0",
+    "micro": "^9.3.2",
+    "microauth-slack": "^0.0.2",
+    "microrouter": "^3.1.3"
+  }
+}

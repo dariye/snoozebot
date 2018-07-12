@@ -1,0 +1,7 @@
+{
+  "name": "nudge",
+  "alias": "nudge",
+  "dotenv": "true",
+  "dotenv": ".env",
+  "type": "npm"
+}

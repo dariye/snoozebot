@@ -1,6 +1,6 @@
 {
-  "name": "nudge",
-  "alias": "nudge",
+  "name": "snoozebot",
+  "alias": "snoozebot",
   "dotenv": "true",
   "dotenv": ".env",
   "type": "npm"

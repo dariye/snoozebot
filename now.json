@@ -1,6 +1,6 @@
 {
-  "name": "snoozebot",
-  "alias": "snoozebot",
+  "name": "snoozebot-andela",
+  "alias": "snoozebot-andela",
   "dotenv": "true",
   "dotenv": ".env",
   "type": "npm"

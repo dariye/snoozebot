@@ -9,16 +9,11 @@ const toPromise = require('denodeify')
 const { parse } = require('url')
 const mime = require('mime')
 
-/**
- * TODO:
- * - Add mongo storage
- *   - store teams / bot token
- *   - persist reminder id
- * - deleteReminder
- * - add onboarding message to user
- * - update index page to use simple html/css
- * - update call back page with simple html/css
- */
+// bot,reminders:read,chat:write:bot,reminders:write,team:read,channels:history,groups:history,channels:read,groups:read,users:read
+
+const Slack = require('./lib/slack')
+const config = require('./config')
+const { to } = require('./utils')
 
 const {
   slack: {
@@ -30,24 +25,23 @@ const {
     scope,
     callbackUrl
   },
-  common
-} = require('./config')
+  storage: { mongoUri }
+} = config
 
-const { to } = require('./utils')
-const Slack = require('./lib/slack')
+const storage = require('./lib/storage')({mongoUri})
 
-const options = {
+const slackAuth = authSlack({
   clientId,
   clientSecret,
   callbackUrl,
   scope,
-  path: '/auth/path'
-}
+  path: '/auth/slack'
+})
 
-const slackAuth = authSlack(options)
 const auth = async (req, res, auth) => {
   if(!auth) return send(res, 404, 'Not Found')
   if (auth.err) return send(res, 403, new Error(auth.err))
+  console.log(auth)
   return send(res, 200, '<p>Snoozebot was successfully installed on your team.</p>')
 }
 
@@ -55,18 +49,35 @@ const events = async (req, res) => {
   try {
     const [err, payload] = await to(json(req))
     if (err) throw new Error(err)
-    if (payload && verificationToken !== payload.token) throw new Error(`unauthorized`)
-    const { type, event } = payload
-    if (type === 'url_verification') return send(res, 200, JSON.stringify(payload))
-    if (type !== 'event_callback' || event.reaction !== reaction) return send(res, 200)
-    if (!event.item_user) return send(res, 200)
-    if (event.type === 'reaction_added') {
-      const slack = new Slack(token, { event })
-      slack.channel = event.item.channel
-      slack.event = event.item.channel
-      const reminder = await slack.addReminder()
-      const message = await slack.whisper({ ...reminder, event })
-    }
+    if (payload.token && verificationToken !== payload.token) throw new Error(`unauthorized`)
+    if (payload.type === 'url_verification') return send(res, 200, JSON.stringify(payload))
+    if (payload.type !== 'event_callback') return send(res, 200)
+    if (payload.event.type !== 'reaction_added') return send(res, 200)
+
+    const { event } = payload
+    const { type, user: userId, item, reaction, item_user, event_ts
+    } = payload.event
+
+    const slack = new Slack(token)
+    const [team, user, channel, message] = await Promise.all([
+      slack.getTeam(),
+      slack.getUser(userId),
+      slack.getChannel(item.channel),
+      slack.getMessage(item.channel, item.ts)
+    ])
+    const reminder = await slack.addReminder({
+      event,
+      team,
+      channel,
+      user
+    })
+    await slack.whisper({
+      event,
+      reminder,
+      message,
+      user,
+      team
+    })
     return send(res, 200)
   } catch(err) {
     console.log(err)
@@ -96,7 +107,7 @@ const getAsset = async (assetPath) => {
   if (!assets[assetPath]) {
     try {
       const file = await toPromise(fs.readFile)(
-        path.resolve(__dirname, './static', assetPath),
+        path.resolve(__dirname, './assets', assetPath),
         'utf8'
       )
       assets[assetPath] = file
@@ -110,7 +121,7 @@ const getAsset = async (assetPath) => {
 
 const renderView = async (directory) => {
   const data = {
-    assetsDir: '/static'
+    assetsDir: '/assets'
   }
   const view = await getView()
   return view(data)
@@ -157,13 +168,15 @@ const exists = async (filePath) => {
 const catchAll = async (req, res) => {
   const { pathname } = parse(req.url)
   const pathObj = path.parse(path.join(process.cwd(), pathname))
-  if (pathname.startsWith('/static/')) {
-    const asset = await getAsset(pathname.replace('/static/', ''))
+  const reqPath = decodeURIComponent(path.format(pathObj))
+
+  if (pathname.startsWith('/assets/')) {
+    const asset = await getAsset(pathname.replace('/assets/', ''))
     res.setHeader('Content-Type', `${mime.getType(pathname)}; charset=utf-8`)
     return send(res, 200, asset)
   }
 
-  if (!awaits(reqPath)) {
+  if (!await exists(reqPath)) {
     return send(res, 404, 'Not found')
   }
 
@@ -186,7 +199,8 @@ module.exports = router(
   get('/', clientView),
   get('/auth/slack', slackAuth(auth)),
   get('/auth/slack/callback', slackAuth(auth)),
-  post('/slack/events', events),
-  get('/*', catchAll)
+  post('/slack/events',
+    rateLimit({ window: 10000, limit: 1, headers: true }, events)),
+  get('*', catchAll)
 )
 

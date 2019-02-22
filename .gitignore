@@ -58,5 +58,6 @@ typings/
 .env
 .env.dev
 
-# next.js build output
-.next
+# node_modules
+yarn.lock
+package-lock.json

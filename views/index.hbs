@@ -1,10 +1,11 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <meta charset="utf-8" />
   <title>Snoozebot | Snooze slack messages for later with the ⏰ emoji.</title>
-  <meta charset="utf-8">
+  <meta name="slack-app-id" content="AC16N8FGB">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  <link rel="icon" href="{{assetsDir}}/favicon.ico" />
+  <link rel="icon" type="image/x-icon" href="{{assetsDir}}/favicon.ico" />
   <link rel="stylesheet" href="{{assetsDir}}/normalize.css">
   <link rel="stylesheet" href="{{assetsDir}}/skeleton.css">
   <link rel="stylesheet" href="{{assetsDir}}/style.css">
@@ -34,7 +35,7 @@
     </nav>
     <section class="header">
       <h1>Snooze</h1>
-      <a href="https://slack.com/oauth/authorize?client_id=289290819732.396355442160&scope=reactions:read,bot,reminders:write,reminders:read,chat:write:bot"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
+      <a href="https://slack.com/oauth/authorize?client_id=289290819732.409226287555&scope=identity.team:read:user,identity:read:user,reactions:read,team:read,users:read,channels:history,groups:history,groups:read,channels:read,chat:write,reminders:write:user"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" /></a>
       <p>Lorem text</p>
     </section>
     <div class="docs-section" id="intro">
@@ -43,6 +44,6 @@
       <p>Love Skeleton and want to Tweet it, share it, or star it? Well, I appreciate that <3</p>
     </div>
   </div>
-  <!-- <script type="text/javascript" src="{{assetsDir}}/app.js"></script> -->
+  <script type="text/javascript" src="{{assetsDir}}/app.js"></script>
 </body>
 </html
